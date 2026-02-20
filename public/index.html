@@ -3,49 +3,32 @@
 <head>
     <title>AgroBridge</title>
     <style>
-        body {
-            font-family: Arial;
-            background-color: #f4f6f8;
-            padding: 40px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #2c7a2c;
-        }
-
-        .section {
-            margin-top: 30px;
-        }
-
-        input, select {
-            padding: 8px;
-            margin: 5px;
-        }
-
+        body { font-family: Arial; background:#f4f6f8; padding:40px; }
+        h1 { text-align:center; color:#2c7a2c; }
+        .section { margin-top:30px; }
+        input { padding:8px; margin:5px; width:250px; }
         button {
-            padding: 8px 12px;
-            background-color: #2c7a2c;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin: 5px;
+            padding:8px 12px;
+            background:#2c7a2c;
+            color:white;
+            border:none;
+            cursor:pointer;
+            margin:5px;
         }
-
-        button:hover {
-            background-color: #256b25;
-        }
-
+        button:hover { background:#256b25; }
         .card {
-            background: white;
-            padding: 15px;
-            margin-top: 10px;
-            border-radius: 6px;
-            box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+            background:white;
+            padding:15px;
+            margin-top:10px;
+            border-radius:6px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+        }
+        .stars span {
+            cursor:pointer;
+            font-size:22px;
         }
     </style>
 </head>
-
 <body>
 
 <h1>AgroBridge - Direct Farmer to Importer Marketplace</h1>
@@ -73,223 +56,192 @@
 <div id="orderForm" style="display:none;">
     <h3>Place Order</h3>
     <p id="selectedCrop"></p>
-    <input id="address" placeholder="Delivery Address">
-    <input id="phone" placeholder="Phone Number">
+    <input id="quantity" placeholder="Quantity (kg)">
+    <input id="house" placeholder="House / Apartment No">
+    <input id="area" placeholder="Area">
+    <input id="street" placeholder="Street">
+    <input id="landmark" placeholder="Landmark">
+    <input id="pincode" placeholder="Pincode (6 digits)">
+    <input id="phone" placeholder="10 Digit Phone Number">
     <button onclick="confirmOrder()">Confirm Order</button>
 </div>
 
 <div class="section" id="ordersSection" style="display:none;">
     <h2>Orders</h2>
-
-    <select id="sortSelect" onchange="loadOrders()" style="display:none;">
-        <option value="newest">Newest First</option>
-        <option value="oldest">Oldest First</option>
-    </select>
-
     <div id="orderList"></div>
 </div>
 
 <script>
 
-let currentUser = null;
-let currentName = null;
-let selectedCropName = null;
+let currentUser=null;
+let currentName=null;
+let selectedCropName=null;
 
-function login(role) {
-    const name = document.getElementById("username").value;
+function login(role){
+    const name=document.getElementById("username").value.trim();
+    if(!name){ alert("Enter your name"); return; }
 
-    if (!name) {
-        alert("Enter your name");
-        return;
+    currentUser=role;
+    currentName=name;
+
+    document.getElementById("farmerSection").style.display="none";
+    document.getElementById("cropsSection").style.display="none";
+    document.getElementById("ordersSection").style.display="none";
+
+    if(role==="farmer"){
+        document.getElementById("farmerSection").style.display="block";
+        document.getElementById("cropsSection").style.display="block";
+        document.getElementById("ordersSection").style.display="block";
     }
 
-    currentUser = role;
-    currentName = name;
-
-    document.getElementById("farmerSection").style.display = "none";
-    document.getElementById("cropsSection").style.display = "none";
-    document.getElementById("ordersSection").style.display = "none";
-    document.getElementById("sortSelect").style.display = "none";
-
-    if (role === "farmer") {
-        document.getElementById("farmerSection").style.display = "block";
-        document.getElementById("cropsSection").style.display = "block";
-        document.getElementById("ordersSection").style.display = "block";
-        document.getElementById("sortSelect").style.display = "block";
-    }
-
-    if (role === "importer") {
-        document.getElementById("cropsSection").style.display = "block";
-        document.getElementById("ordersSection").style.display = "block";
+    if(role==="importer"){
+        document.getElementById("cropsSection").style.display="block";
+        document.getElementById("ordersSection").style.display="block";
     }
 
     loadCrops();
     loadOrders();
 }
 
-function addCrop() {
-    const name = document.getElementById("name").value;
-    const weight = document.getElementById("weight").value;
-    const price = document.getElementById("price").value;
+function addCrop(){
+    const name=document.getElementById("name").value;
+    const weight=document.getElementById("weight").value;
+    const price=document.getElementById("price").value;
 
-    if (!name || !weight || !price) {
-        alert("Fill all fields");
-        return;
-    }
+    if(!name||!weight||!price){ alert("Fill all fields"); return; }
 
-    fetch('/add-crop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ farmer: currentName, name, weight, price })
+    fetch('/add-crop',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({farmer:currentName,name,weight,price})
     })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        loadCrops();
+    .then(res=>res.json())
+    .then(data=>{ alert(data.message); loadCrops(); });
+}
+
+function deleteCrop(index){
+    fetch('/delete-crop/'+index,{method:'POST'})
+    .then(()=>{ loadCrops(); loadOrders(); });
+}
+
+function loadCrops(){
+    fetch('/crops')
+    .then(res=>res.json())
+    .then(data=>{
+        const list=document.getElementById("cropList");
+        list.innerHTML="";
+        data.forEach((crop,index)=>{
+            list.innerHTML+=`
+            <div class="card">
+                <h3>${crop.name}</h3>
+                <p>Farmer: ${crop.farmer}</p>
+                <p>Weight: ${crop.weight} kg</p>
+                <p>Price: ₹${crop.price}</p>
+                ${currentUser==="importer"
+                    ? `<button onclick="showOrderForm('${crop.name}')">Buy</button>`:""}
+                ${currentUser==="farmer"
+                    ? `<button onclick="deleteCrop(${index})" style="background:red;">Delete</button>`:""}
+            </div>`;
+        });
     });
 }
 
-function deleteCrop(index) {
-    fetch('/delete-crop/' + index, { method: 'POST' })
-        .then(() => {
-            loadCrops();
-            loadOrders();
-        });
+function showOrderForm(cropName){
+    selectedCropName=cropName;
+    document.getElementById("selectedCrop").innerText="Crop: "+cropName;
+    document.getElementById("orderForm").style.display="block";
 }
 
-function loadCrops() {
-    fetch('/crops')
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById("cropList");
-            list.innerHTML = "";
+function confirmOrder(){
+    const quantity=document.getElementById("quantity").value;
+    const house=document.getElementById("house").value;
+    const area=document.getElementById("area").value;
+    const street=document.getElementById("street").value;
+    const landmark=document.getElementById("landmark").value;
+    const pincode=document.getElementById("pincode").value;
+    const phone=document.getElementById("phone").value;
 
-            data.forEach((crop, index) => {
-                list.innerHTML += `
-                    <div class="card">
-                        <h3>${crop.name}</h3>
-                        <p>Farmer: ${crop.farmer}</p>
-                        <p>Weight: ${crop.weight} kg</p>
-                        <p>Price: ₹${crop.price}</p>
+    if(!quantity || quantity<=0){ alert("Enter valid quantity"); return; }
+    if(!house){ alert("House required"); return; }
+    if(!/^\d{6}$/.test(pincode)){ alert("Pincode must be 6 digits"); return; }
+    if(!/^\d{10}$/.test(phone)){ alert("Phone must be 10 digits"); return; }
 
-                        ${currentUser === "importer"
-                            ? `<button onclick="showOrderForm('${crop.name}')">Buy</button>`
-                            : ""}
-
-                        ${currentUser === "farmer"
-                            ? `<button onclick="deleteCrop(${index})" style="background:red;">Delete</button>`
-                            : ""}
-                    </div>
-                `;
-            });
-        });
-}
-
-function showOrderForm(cropName) {
-    selectedCropName = cropName;
-    document.getElementById("selectedCrop").innerText = "Crop: " + cropName;
-    document.getElementById("orderForm").style.display = "block";
-}
-
-function confirmOrder() {
-    const address = document.getElementById("address").value;
-    const phone = document.getElementById("phone").value;
-
-    if (!address || !phone) {
-        alert("Fill all details");
-        return;
-    }
-
-    fetch('/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            crop: selectedCropName,
-            importer: currentName,
-            address,
-            phone
+    fetch('/order',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            crop:selectedCropName,
+            importer:currentName,
+            quantity,
+            house,area,street,landmark,pincode,phone
         })
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(res=>res.json())
+    .then(data=>{
         alert(data.message);
-        document.getElementById("orderForm").style.display = "none";
+        document.getElementById("orderForm").style.display="none";
         loadOrders();
     });
-}          
+}
 
-function loadOrders() {
+function loadOrders(){
     fetch('/orders')
-        .then(res => res.json())
-        .then(data => {
+    .then(res=>res.json())
+    .then(data=>{
+        const list=document.getElementById("orderList");
+        list.innerHTML="";
 
-            const sortValue = document.getElementById("sortSelect").value;
+        data.forEach((order,index)=>{
 
-            if (currentUser === "farmer") {
-                if (sortValue === "newest") {
-                    data.sort((a,b) => new Date(b.date) - new Date(a.date));
-                } else {
-                    data.sort((a,b) => new Date(a.date) - new Date(b.date));
-                }
-            }
+            if(currentUser==="importer" && order.importer!==currentName) return;
 
-            const list = document.getElementById("orderList");
-            list.innerHTML = "";
+            list.innerHTML+=`
+            <div class="card">
+                <h3>${order.crop}</h3>
+                <p>Quantity: ${order.quantity} kg</p>
+                <p>Importer: ${order.importer}</p>
+                <p>Address: ${order.house}, ${order.area}, ${order.street}, ${order.landmark}, ${order.pincode}</p>
+                <p>Phone: ${order.phone}</p>
+                <p>Status: ${order.status}</p>
 
-            data.forEach((order, realIndex) => {
+                ${currentUser==="farmer" && order.status==="Paid"
+                    ? `<button onclick="deliverOrder(${index})">Deliver</button>`:""}
 
-                if (currentUser === "importer" && order.importer !== currentName) return;
+                ${currentUser==="importer" && order.status==="Paid"
+                    ? `<button onclick="cancelOrder(${index})" style="background:red;">Cancel</button>`:""}
 
-                list.innerHTML += `
-                    <div class="card">
-                        <h3>${order.crop}</h3>
-                        <p>Importer: ${order.importer}</p>
-                        <p>Address: ${order.address}</p>
-                        <p>Phone: ${order.phone}</p>
-                        <p>Status: ${order.status}</p>
-                        <p>Date: ${new Date(order.date).toLocaleString()}</p>
+                ${currentUser==="importer" && order.status==="Delivered" && !order.rating
+                    ? `<div class="stars">
+                        <span onclick="rateOrder(${index},1)">⭐</span>
+                        <span onclick="rateOrder(${index},2)">⭐</span>
+                        <span onclick="rateOrder(${index},3)">⭐</span>
+                        <span onclick="rateOrder(${index},4)">⭐</span>
+                        <span onclick="rateOrder(${index},5)">⭐</span>
+                       </div>`:""}
 
-                        ${currentUser === "farmer" && order.status === "Paid"
-                            ? `<button onclick="deliverOrder(${realIndex})">Deliver</button>`
-                            : ""}
-
-                        ${currentUser === "importer" && order.status === "Paid"
-                            ? `<button onclick="cancelOrder(${realIndex})" style="background:red;">Cancel</button>`
-                            : ""}
-
-                        ${currentUser === "importer" && order.status === "Delivered" && !order.rating
-                            ? `
-                            <button onclick="rateOrder(${realIndex},1)">⭐</button>
-                            <button onclick="rateOrder(${realIndex},2)">⭐⭐</button>
-                            <button onclick="rateOrder(${realIndex},3)">⭐⭐⭐</button>
-                            <button onclick="rateOrder(${realIndex},4)">⭐⭐⭐⭐</button>
-                            <button onclick="rateOrder(${realIndex},5)">⭐⭐⭐⭐⭐</button>
-                            `
-                            : ""}
-
-                        ${order.rating ? `<p>Rating: ${order.rating}⭐</p>` : ""}
-                    </div>
-                `;
-            });
+                ${order.rating?`<p>Rating: ${"⭐".repeat(order.rating)}</p>`:""}
+            </div>`;
         });
-}
-function deliverOrder(index) {
-    fetch('/deliver/' + index, { method: 'POST' })
-        .then(() => loadOrders());
+    });
 }
 
-function cancelOrder(index) {
-    fetch('/cancel/' + index, { method: 'POST' })
-        .then(() => loadOrders());
+function deliverOrder(index){
+    fetch('/deliver/'+index,{method:'POST'})
+    .then(()=>loadOrders());
 }
 
-function rateOrder(index, stars) {
-    fetch('/rate/' + index, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating: stars })
+function cancelOrder(index){
+    fetch('/cancel/'+index,{method:'POST'})
+    .then(()=>loadOrders());
+}
+
+function rateOrder(index,stars){
+    fetch('/rate/'+index,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({rating:stars})
     })
-    .then(() => loadOrders());
+    .then(()=>loadOrders());
 }
 
 </script>
