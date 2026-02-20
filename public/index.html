@@ -13,18 +13,19 @@ font-family:'Poppins',sans-serif;
 }
 
 body{
-background:linear-gradient(to right,#e8f5e9,#f1f8e9);
+background:linear-gradient(135deg,#e8f5e9,#f1f8e9);
 min-height:100vh;
+color:#222;
 }
 
 .navbar{
 background:#1b5e20;
 color:white;
-padding:20px 40px;
+padding:20px 50px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-box-shadow:0 5px 20px rgba(0,0,0,0.15);
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
 
 .navbar h2{
@@ -35,14 +36,10 @@ font-weight:600;
 background:white;
 color:#1b5e20;
 border:none;
-padding:8px 16px;
-border-radius:6px;
+padding:8px 18px;
+border-radius:25px;
 cursor:pointer;
-transition:0.3s;
-}
-
-.navbar button:hover{
-transform:scale(1.05);
+font-weight:500;
 }
 
 .auth-container{
@@ -54,58 +51,51 @@ height:100vh;
 
 .auth-card{
 background:white;
-padding:40px;
-width:360px;
-border-radius:20px;
-box-shadow:0 20px 50px rgba(0,0,0,0.15);
+padding:45px;
+width:380px;
+border-radius:25px;
+box-shadow:0 30px 70px rgba(0,0,0,0.15);
 text-align:center;
-animation:fadeIn 0.6s ease;
 }
 
 .auth-card h1{
-margin-bottom:20px;
+margin-bottom:25px;
 color:#1b5e20;
 }
 
-.auth-card input,.auth-card select{
+.auth-card input,
+.auth-card select{
 width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:10px;
+padding:14px;
+margin:12px 0;
+border-radius:12px;
 border:1px solid #ddd;
 }
 
 .auth-card button{
 width:100%;
-padding:12px;
+padding:14px;
 border:none;
-border-radius:10px;
+border-radius:12px;
 background:#2e7d32;
 color:white;
 font-weight:600;
 cursor:pointer;
-transition:0.3s;
-}
-
-.auth-card button:hover{
-transform:scale(1.03);
-background:#1b5e20;
 }
 
 .dashboard{
 display:none;
-padding:40px;
-animation:fadeIn 0.6s ease;
+padding:50px 70px;
 }
 
 .section{
-margin-top:30px;
+margin-top:40px;
 }
 
 input{
-padding:10px;
-margin:5px;
-border-radius:8px;
+padding:12px;
+margin:8px 5px;
+border-radius:10px;
 border:1px solid #ccc;
 }
 
@@ -113,37 +103,31 @@ button.action{
 background:#2e7d32;
 color:white;
 border:none;
-padding:8px 14px;
-border-radius:8px;
+padding:10px 18px;
+border-radius:25px;
 cursor:pointer;
-transition:0.3s;
-}
-
-button.action:hover{
-transform:translateY(-2px);
 }
 
 button.delete{
 background:#c62828;
 color:white;
 border:none;
-padding:6px 12px;
-border-radius:8px;
+padding:8px 16px;
+border-radius:25px;
 cursor:pointer;
+}
+
+#cropList{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
 }
 
 .card{
 background:white;
-padding:20px;
-border-radius:15px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-margin-top:15px;
-transition:0.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
-box-shadow:0 15px 35px rgba(0,0,0,0.15);
+padding:25px;
+border-radius:20px;
+box-shadow:0 15px 40px rgba(0,0,0,0.08);
 }
 
 .stars span{
@@ -153,19 +137,13 @@ font-size:20px;
 
 #popup{
 position:fixed;
-top:20px;
-right:20px;
+top:25px;
+right:25px;
 background:#2e7d32;
 color:white;
-padding:15px 20px;
-border-radius:10px;
+padding:15px 25px;
+border-radius:15px;
 display:none;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-}
-
-@keyframes fadeIn{
-from{opacity:0;transform:translateY(20px);}
-to{opacity:1;transform:translateY(0);}
 }
 </style>
 </head>
@@ -174,7 +152,7 @@ to{opacity:1;transform:translateY(0);}
 
 <div id="popup"></div>
 
-<div class="auth-container" id="authPage">
+<div id="authPage" class="auth-container">
 <div class="auth-card">
 <h1>AgroBridge</h1>
 <input id="username" placeholder="Enter Your Name">
@@ -187,7 +165,7 @@ to{opacity:1;transform:translateY(0);}
 </div>
 </div>
 
-<div class="dashboard" id="dashboard">
+<div id="dashboard" class="dashboard">
 
 <div class="navbar">
 <h2>AgroBridge Marketplace</h2>
@@ -211,7 +189,7 @@ to{opacity:1;transform:translateY(0);}
 <h3>Place Order</h3>
 <p id="selectedCrop"></p>
 <input id="quantity" placeholder="Quantity (kg)">
-<input id="house" placeholder="House No">
+<input id="house" placeholder="House">
 <input id="area" placeholder="Area">
 <input id="street" placeholder="Street">
 <input id="landmark" placeholder="Landmark">
@@ -222,12 +200,10 @@ to{opacity:1;transform:translateY(0);}
 
 <div class="section">
 <h3>Orders</h3>
-
-<select id="sortSelect" onchange="loadOrders()" style="margin-bottom:10px;">
+<select id="sortSelect" onchange="loadOrders()">
 <option value="newest">Newest First</option>
 <option value="oldest">Oldest First</option>
 </select>
-
 <div id="orderList"></div>
 </div>
 
@@ -237,11 +213,12 @@ to{opacity:1;transform:translateY(0);}
 
 let currentUser=null;
 let currentName=null;
+let selectedCropId=null;
 let selectedCropName=null;
 
-function showPopup(message){
+function showPopup(msg){
 const popup=document.getElementById("popup");
-popup.innerText=message;
+popup.innerText=msg;
 popup.style.display="block";
 setTimeout(()=>popup.style.display="none",3000);
 }
@@ -250,17 +227,13 @@ function login(){
 const name=document.getElementById("username").value.trim();
 const role=document.getElementById("roleSelect").value;
 if(!name||!role){showPopup("Fill all fields");return;}
-
 currentUser=role;
 currentName=name;
-
 document.getElementById("authPage").style.display="none";
 document.getElementById("dashboard").style.display="block";
-
 if(role==="farmer"){
 document.getElementById("farmerSection").style.display="block";
 }
-
 loadCrops();
 loadOrders();
 }
@@ -272,14 +245,17 @@ const name=document.getElementById("name").value;
 const weight=document.getElementById("weight").value;
 const price=document.getElementById("price").value;
 if(!name||!weight||!price){showPopup("Fill all fields");return;}
-
-fetch('/add-crop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({farmer:currentName,name,weight,price})})
+fetch('/add-crop',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({farmer:currentName,name,weight,price})
+})
 .then(res=>res.json())
 .then(data=>{showPopup(data.message);loadCrops();});
 }
 
-function deleteCrop(index){
-fetch('/delete-crop/'+index,{method:'POST'})
+function deleteCrop(id){
+fetch('/delete-crop/'+id,{method:'POST'})
 .then(()=>{loadCrops();loadOrders();});
 }
 
@@ -289,32 +265,30 @@ fetch('/crops')
 .then(data=>{
 const list=document.getElementById("cropList");
 list.innerHTML="";
-data.forEach((crop,index)=>{
+data.forEach((crop)=>{
 list.innerHTML+=`
 <div class="card">
 <h3>${crop.name}</h3>
-<p><strong>Farmer:</strong> ${crop.farmer}</p>
-<p><strong>Weight:</strong> ${crop.weight} kg</p>
-<p><strong>Price:</strong> ₹${crop.price}</p>
-${currentUser==="importer"?`<button class="action" onclick="showOrderForm('${crop.name}')">Buy</button>`:""}
-${currentUser==="farmer"?`<button class="delete" onclick="deleteCrop(${index})">Delete</button>`:""}
+<p>Farmer: ${crop.farmer}</p>
+<p>Weight Left: ${crop.weight} kg</p>
+<p>Price: ₹${crop.price}</p>
+${currentUser==="importer"?`<button class="action" onclick="showOrderForm(${crop.id},'${crop.name}')">Buy</button>`:""}
+${currentUser==="farmer" && crop.farmer===currentName?`<button class="delete" onclick="deleteCrop(${crop.id})">Delete</button>`:""}
 </div>`;
 });
 });
 }
 
-function showOrderForm(cropName){
-selectedCropName=cropName;
-document.getElementById("selectedCrop").innerText="Crop: "+cropName;
+function showOrderForm(id,name){
+selectedCropId=id;
+selectedCropName=name;
+document.getElementById("selectedCrop").innerText="Crop: "+name;
 document.getElementById("orderForm").style.display="block";
 }
 
 function confirmOrder(){
-const quantity=document.getElementById("quantity").value;
+const quantity=Number(document.getElementById("quantity").value);
 const house=document.getElementById("house").value;
-const area=document.getElementById("area").value;
-const street=document.getElementById("street").value;
-const landmark=document.getElementById("landmark").value;
 const pincode=document.getElementById("pincode").value;
 const phone=document.getElementById("phone").value;
 
@@ -323,45 +297,59 @@ if(!house){showPopup("House required");return;}
 if(!/^\d{6}$/.test(pincode)){showPopup("Pincode must be 6 digits");return;}
 if(!/^\d{10}$/.test(phone)){showPopup("Phone must be 10 digits");return;}
 
-fetch('/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({crop:selectedCropName,importer:currentName,quantity,house,area,street,landmark,pincode,phone})})
+fetch('/order',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+cropId:selectedCropId,
+importer:currentName,
+quantity,
+house,
+area:document.getElementById("area").value,
+street:document.getElementById("street").value,
+landmark:document.getElementById("landmark").value,
+pincode,
+phone
+})
+})
 .then(res=>res.json())
-.then(data=>{showPopup(data.message);document.getElementById("orderForm").style.display="none";loadOrders();});
+.then(data=>{
+showPopup(data.message);
+document.getElementById("orderForm").style.display="none";
+loadOrders();
+loadCrops();
+});
 }
 
 function loadOrders(){
 fetch('/orders')
 .then(res=>res.json())
 .then(data=>{
-
 const sort=document.getElementById("sortSelect").value;
 if(currentUser==="farmer"){
 if(sort==="newest"){data.sort((a,b)=>new Date(b.date)-new Date(a.date));}
 else{data.sort((a,b)=>new Date(a.date)-new Date(b.date));}
 }
-
 const list=document.getElementById("orderList");
 list.innerHTML="";
-
 data.forEach((order,index)=>{
-if(currentUser==="importer"&&order.importer!==currentName)return;
+if(currentUser==="importer" && order.importer!==currentName) return;
+if(currentUser==="farmer" && order.farmer!==currentName) return;
 
 list.innerHTML+=`
 <div class="card">
 <h3>${order.crop}</h3>
-<p><strong>Quantity:</strong> ${order.quantity} kg</p>
-<p><strong>Status:</strong> ${order.status}</p>
-<p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+<p>Quantity: ${order.quantity} kg</p>
+<p>Status: ${order.status}</p>
+<p>Date: ${new Date(order.date).toLocaleString()}</p>
 
 ${currentUser==="farmer"?`
-<p><strong>Ordered By:</strong> ${order.importer}</p>
-<p><strong>Address:</strong> ${order.house}, ${order.area||''}, ${order.street||''}, ${order.landmark||''}, ${order.pincode}</p>
-<p><strong>Phone:</strong> ${order.phone}</p>
-`:""}
+<p>Ordered By: ${order.importer}</p>
+<p>Address: ${order.house}, ${order.area||''}, ${order.street||''}, ${order.landmark||''}, ${order.pincode}</p>
+<p>Phone: ${order.phone}</p>`:""}
 
 ${currentUser==="farmer"&&order.status==="Paid"?`<button class="action" onclick="deliverOrder(${index})">Deliver</button>`:""}
-
 ${currentUser==="importer"&&order.status==="Paid"?`<button class="delete" onclick="cancelOrder(${index})">Cancel</button>`:""}
-
 ${currentUser==="importer"&&order.status==="Delivered"&&!order.rating?`
 <div class="stars">
 <span onclick="rateOrder(${index},1)">⭐</span>
@@ -370,8 +358,7 @@ ${currentUser==="importer"&&order.status==="Delivered"&&!order.rating?`
 <span onclick="rateOrder(${index},4)">⭐</span>
 <span onclick="rateOrder(${index},5)">⭐</span>
 </div>`:""}
-
-${order.rating?`<p><strong>Rating:</strong> ${"⭐".repeat(order.rating)}</p>`:""}
+${order.rating?`<p>Rating: ${"⭐".repeat(order.rating)}</p>`:""}
 </div>`;
 });
 });
@@ -382,14 +369,16 @@ fetch('/deliver/'+index,{method:'POST'}).then(()=>loadOrders());
 }
 
 function cancelOrder(index){
-fetch('/cancel/'+index,{method:'POST'}).then(()=>loadOrders());
+fetch('/cancel/'+index,{method:'POST'}).then(()=>{loadOrders();loadCrops();});
 }
 
 function rateOrder(index,stars){
-fetch('/rate/'+index,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rating:stars})})
-.then(()=>loadOrders());
+fetch('/rate/'+index,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({rating:stars})
+}).then(()=>loadOrders());
 }
-
 </script>
 </body>
 </html>
