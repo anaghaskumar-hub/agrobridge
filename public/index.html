@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AgroBridge</title>
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f4f6f8;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c7a2c;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+
+        input {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        button {
+            padding: 8px 12px;
+            background-color: #2c7a2c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #256b25;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 6px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>AgroBridge - Direct Farmer to Importer Marketplace</h1>
+
+<div class="section">
+    <h2>Select Profile</h2>
+    <button onclick="login('farmer')">Farmer Login</button>
+    <button onclick="login('importer')">Importer Login</button>
+</div>
+
+<div class="section" id="farmerSection" style="display:none;">
+    <h2>Farmer Section</h2>
+    <input id="farmer" placeholder="Farmer Name">
+    <input id="name" placeholder="Crop Name">
+    <input id="weight" placeholder="Weight (kg)">
+    <input id="price" placeholder="Price per kg">
+    <button onclick="addCrop()">Add Crop</button>
+</div>
+
+<div class="section" id="cropsSection" style="display:none;">
+    <h2>Available Crops</h2>
+    <div id="cropList"></div>
+</div>
+
+<div class="section" id="ordersSection" style="display:none;">
+    <h2>Orders</h2>
+    <select id="sortSelect" onchange="loadOrders()" style="display:none;">
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    </select>
+    <div id="orderList"></div>
+</div>
+
+<script>
+
+let currentUser = null;
+
+function login(role) {
+    currentUser = role;
+
+    document.getElementById("farmerSection").style.display = "none";
+    document.getElementById("cropsSection").style.display = "none";
+    document.getElementById("ordersSection").style.display = "none";
+
+    if (role === "farmer") {
+        document.getElementById("farmerSection").style.display = "block";
+        document.getElementById("cropsSection").style.display = "block";
+        document.getElementById("ordersSection").style.display = "block";
+    }
+
+    if (role === "importer") {
+        document.getElementById("cropsSection").style.display = "block";
+        document.getElementById("ordersSection").style.display = "block";
+    }
+
+    loadCrops();
+    loadOrders();
+}
+
+function addCrop() {
+    const farmer = document.getElementById("farmer").value;
+    const name = document.getElementById("name").value;
+    const weight = document.getElementById("weight").value;
+    const price = document.getElementById("price").value;
+
+    if (!farmer || !name || !weight || !price) {
+        alert("Fill all fields");
+        return;
+    }
+
+    fetch('/add-crop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ farmer, name, weight, price })
+    })
+.then(res => res.json())
+.then(data => {
+    alert(data.message);
+    loadCrops();
+});
+}
+
+function deleteCrop(index) {
+    fetch('/delete-crop/' + index, { method: 'POST' })
+        .then(() => {
+            loadCrops();
+            loadOrders();
+        });
+}
+
+function loadCrops() {
+    fetch('/crops')
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById("cropList");
+            list.innerHTML = "";
+
+            data.forEach((crop, index) => {
+                list.innerHTML += `
+                    <div class="card">
+                        <h3>${crop.name}</h3>
+                        <p>Farmer: ${crop.farmer}</p>
+                        <p>Weight: ${crop.weight} kg</p>
+                        <p>Price: ₹${crop.price} per kg</p>
+
+                        ${currentUser === "importer"
+                            ? `<button onclick="orderCrop('${crop.name}')">Buy</button>`
+                            : ""}
+
+                        ${currentUser === "farmer"
+                            ? `<button onclick="deleteCrop(${index})" style="background:red;">Delete</button>`
+                            : ""}
+                    </div>
+                `;
+            });
+        });
+}
+
+function orderCrop(cropName) {
+    fetch('/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ crop: cropName })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadOrders();
+    });
+}
+
+function loadOrders() {
+    fetch('/orders')
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById("orderList");
+            list.innerHTML = "";
+
+            data.forEach((order, index) => {
+                list.innerHTML += `
+                    <div class="card">
+                        <h3>${order.crop}</h3>
+                        <p>Status: ${order.status}</p>
+
+                        ${currentUser === "farmer" && order.status === "Paid"
+                            ? `<button onclick="deliverOrder(${index})">Deliver</button>`
+                            : ""}
+
+
+                        ${currentUser === "importer" && order.status === "Paid"
+                            ? `<button onclick="cancelOrder(${index})" style="background:red;">Cancel</button>`
+                            : ""}
+
+                        ${currentUser === "importer" && order.status === "Delivered" && !order.rating
+                            ? `
+                            <button onclick="rateOrder(${index},1)">⭐</button>
+                            <button onclick="rateOrder(${index},2)">⭐⭐</button>
+                            <button onclick="rateOrder(${index},3)">⭐⭐⭐</button>
+                            <button onclick="rateOrder(${index},4)">⭐⭐⭐⭐</button>
+                            <button onclick="rateOrder(${index},5)">⭐⭐⭐⭐⭐</button>
+                            `
+                            : ""}
+
+                        ${order.rating ? `<p>Rating: ${order.rating}⭐</p>` : ""}
+                    </div>
+                `;
+            });
+        });
+}
+
+function deliverOrder(index) {
+    fetch('/deliver/' + index, { method: 'POST' })
+        .then(() => loadOrders());
+}
+
+function cancelOrder(index) {
+    fetch('/cancel/' + index, { method: 'POST' })
+        .then(() => loadOrders());
+}
+
+
+function rateOrder(index, stars) {
+    fetch('/rate/' + index, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: stars })
+    })
+    .then(() => loadOrders());
+}
+
+</script>
+
+</body>
+</html>
