@@ -1,162 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>AgroBridge</title>
+<title>AgroBridge Premium</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background:#f4f7f9;}
+
+.login-page{
+height:100vh;display:flex;justify-content:center;align-items:center;
+background:linear-gradient(135deg,#2e7d32,#1b5e20);
+}
+.login-card{
+background:white;padding:40px;width:360px;border-radius:20px;
+box-shadow:0 30px 60px rgba(0,0,0,0.3);text-align:center;
+}
+.login-card h1{color:#1b5e20;margin-bottom:20px;}
+.login-card input,.login-card select{
+width:100%;padding:12px;margin:10px 0;border-radius:10px;border:1px solid #ccc;
+}
+.login-card button{
+width:100%;padding:12px;border:none;border-radius:12px;
+background:#2e7d32;color:white;font-weight:600;cursor:pointer;
 }
 
-body{
-background:linear-gradient(135deg,#e8f5e9,#f1f8e9);
-min-height:100vh;
-color:#222;
+.dashboard{display:none;height:100vh;}
+.dashboard.active{display:flex;}
+
+.sidebar{
+width:220px;background:#1b5e20;color:white;padding:30px 20px;
+}
+.sidebar h2{margin-bottom:30px;}
+.sidebar button{
+display:block;width:100%;margin-bottom:15px;padding:10px;
+border:none;border-radius:8px;background:#2e7d32;color:white;cursor:pointer;
 }
 
-.navbar{
-background:#1b5e20;
-color:white;
-padding:20px 50px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-}
+.main{flex:1;padding:40px;overflow-y:auto;}
 
-.navbar h2{
-font-weight:600;
-}
-
-.navbar button{
-background:white;
-color:#1b5e20;
-border:none;
-padding:8px 18px;
-border-radius:25px;
-cursor:pointer;
-font-weight:500;
-}
-
-.auth-container{
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.auth-card{
-background:white;
-padding:45px;
-width:380px;
-border-radius:25px;
-box-shadow:0 30px 70px rgba(0,0,0,0.15);
-text-align:center;
-}
-
-.auth-card h1{
-margin-bottom:25px;
-color:#1b5e20;
-}
-
-.auth-card input,
-.auth-card select{
-width:100%;
-padding:14px;
-margin:12px 0;
-border-radius:12px;
-border:1px solid #ddd;
-}
-
-.auth-card button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:12px;
-background:#2e7d32;
-color:white;
-font-weight:600;
-cursor:pointer;
-}
-
-.dashboard{
-display:none;
-padding:50px 70px;
-}
-
-.section{
-margin-top:40px;
-}
-
-input{
-padding:12px;
-margin:8px 5px;
-border-radius:10px;
-border:1px solid #ccc;
+.card{
+background:white;padding:20px;margin:15px 0;border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,0.05);
 }
 
 button.action{
-background:#2e7d32;
-color:white;
-border:none;
-padding:10px 18px;
-border-radius:25px;
-cursor:pointer;
+background:#2e7d32;color:white;border:none;padding:8px 14px;
+border-radius:20px;cursor:pointer;
 }
 
-button.delete{
-background:#c62828;
-color:white;
-border:none;
-padding:8px 16px;
-border-radius:25px;
-cursor:pointer;
-}
+.hidden{display:none;}
 
-#cropList{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
+#cartBox{
+position:fixed;right:20px;top:20px;background:white;padding:20px;
+border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);
+width:280px;display:none;
 }
-
-.card{
-background:white;
-padding:25px;
-border-radius:20px;
-box-shadow:0 15px 40px rgba(0,0,0,0.08);
-}
-
-.stars span{
-cursor:pointer;
-font-size:20px;
-}
-
-#popup{
-position:fixed;
-top:25px;
-right:25px;
-background:#2e7d32;
-color:white;
-padding:15px 25px;
-border-radius:15px;
-display:none;
-}
+#cartBox input{width:100%;margin:5px 0;padding:6px;border-radius:6px;border:1px solid #ccc;}
 </style>
 </head>
 
 <body>
 
-<div id="popup"></div>
-
-<div id="authPage" class="auth-container">
-<div class="auth-card">
+<div class="login-page" id="loginPage">
+<div class="login-card">
 <h1>AgroBridge</h1>
-<input id="username" placeholder="Enter Your Name">
-<select id="roleSelect">
+<input id="username" placeholder="Enter Name">
+<select id="role">
 <option value="">Select Role</option>
 <option value="farmer">Farmer</option>
 <option value="importer">Importer</option>
@@ -165,157 +75,197 @@ display:none;
 </div>
 </div>
 
-<div id="dashboard" class="dashboard">
+<div class="dashboard" id="dashboard">
 
-<div class="navbar">
-<h2>AgroBridge Marketplace</h2>
+<div class="sidebar">
+<h2>AgroBridge</h2>
+<button onclick="showSection('home')">Home</button>
+<button id="farmerBtn" onclick="showSection('farmer')" class="hidden">Add Crop</button>
+<button onclick="showSection('orders')">Orders</button>
+<button id="revenueBtn" onclick="showSection('revenue')" class="hidden">Revenue</button>
 <button onclick="logout()">Logout</button>
 </div>
 
-<div id="farmerSection" class="section" style="display:none;">
-<h3>Add Crop</h3>
-<input id="name" placeholder="Crop Name">
-<input id="weight" placeholder="Weight (kg)">
-<input id="price" placeholder="Price per kg">
-<button class="action" onclick="addCrop()">Add Crop</button>
-</div>
+<div class="main">
+<h2 id="welcome"></h2>
 
-<div class="section">
+<div id="homeSection">
 <h3>Available Crops</h3>
 <div id="cropList"></div>
 </div>
 
-<div id="orderForm" style="display:none;">
-<h3>Place Order</h3>
-<p id="selectedCrop"></p>
-<input id="quantity" placeholder="Quantity (kg)">
-<input id="house" placeholder="House">
-<input id="area" placeholder="Area">
-<input id="street" placeholder="Street">
-<input id="landmark" placeholder="Landmark">
-<input id="pincode" placeholder="Pincode">
-<input id="phone" placeholder="Phone">
-<button class="action" onclick="confirmOrder()">Confirm Order</button>
+<div id="farmerSection" class="hidden">
+<h3>Add Crop</h3>
+<input id="name" placeholder="Crop Name">
+<input id="weight" placeholder="Weight">
+<input id="price" placeholder="Price">
+<button class="action" onclick="addCrop()">Add Crop</button>
 </div>
 
-<div class="section">
-<h3>Orders</h3>
-<select id="sortSelect" onchange="loadOrders()">
-<option value="newest">Newest First</option>
-<option value="oldest">Oldest First</option>
-</select>
+<div id="ordersSection" class="hidden">
+<h3 id="ordersTitle">Orders</h3>
 <div id="orderList"></div>
 </div>
 
+<div id="revenueSection" class="hidden">
+<h3>Revenue Dashboard</h3>
+<div id="revenueBox"></div>
+</div>
+
+</div>
+</div>
+
+<div id="cartBox">
+<h3>Cart (Max 10)</h3>
+<div id="cartItems"></div>
+<p><strong>Total:</strong> ₹<span id="cartTotal">0</span></p>
+
+<h4>Delivery Address</h4>
+<input id="house" placeholder="House / Apartment No">
+<input id="area" placeholder="Area / Street">
+<input id="landmark" placeholder="Landmark">
+<input id="district" placeholder="District">
+<input id="state" placeholder="State">
+<input id="pincode" placeholder="Pincode (6 digits)">
+<input id="phone" placeholder="Phone (10 digits)">
+
+<button onclick="checkout()">Checkout</button>
 </div>
 
 <script>
 
 let currentUser=null;
 let currentName=null;
-let selectedCropId=null;
-let selectedCropName=null;
-
-function showPopup(msg){
-const popup=document.getElementById("popup");
-popup.innerText=msg;
-popup.style.display="block";
-setTimeout(()=>popup.style.display="none",3000);
-}
+let cart=[];
+let total=0;
 
 function login(){
-const name=document.getElementById("username").value.trim();
-const role=document.getElementById("roleSelect").value;
-if(!name||!role){showPopup("Fill all fields");return;}
-currentUser=role;
-currentName=name;
-document.getElementById("authPage").style.display="none";
-document.getElementById("dashboard").style.display="block";
-if(role==="farmer"){
-document.getElementById("farmerSection").style.display="block";
+currentName=document.getElementById("username").value.trim();
+currentUser=document.getElementById("role").value;
+
+if(!currentName||!currentUser){alert("Fill details");return;}
+
+document.getElementById("loginPage").style.display="none";
+document.getElementById("dashboard").classList.add("active");
+document.getElementById("welcome").innerText="Welcome "+currentName;
+if(currentUser === "farmer"){
+    document.getElementById("farmerBtn").style.display = "block";
+    document.getElementById("revenueBtn").style.display = "block";
+    document.getElementById("ordersTitle").innerText="My Product Orders";
+    document.getElementById("cartBox").style.display="none";
+}else{
+    document.getElementById("farmerBtn").style.display = "none";
+    document.getElementById("revenueBtn").style.display = "none";
+    document.getElementById("ordersTitle").innerText="My Orders";
+    document.getElementById("cartBox").style.display="block";
 }
+
+
+showSection("home");
 loadCrops();
 loadOrders();
+if(currentUser==="farmer") loadRevenue();
 }
 
 function logout(){location.reload();}
 
+function showSection(section){
+["homeSection","farmerSection","ordersSection","revenueSection"]
+.forEach(id=>document.getElementById(id).classList.add("hidden"));
+
+if(section==="home") document.getElementById("homeSection").classList.remove("hidden");
+if(section==="farmer" && currentUser==="farmer")
+document.getElementById("farmerSection").classList.remove("hidden");
+if(section==="orders") document.getElementById("ordersSection").classList.remove("hidden");
+if(section==="revenue" && currentUser==="farmer")
+document.getElementById("revenueSection").classList.remove("hidden");
+}
+
 function addCrop(){
-const name=document.getElementById("name").value;
-const weight=document.getElementById("weight").value;
-const price=document.getElementById("price").value;
-if(!name||!weight||!price){showPopup("Fill all fields");return;}
+const name=document.getElementById("name").value.trim();
+const weight=document.getElementById("weight").value.trim();
+const price=document.getElementById("price").value.trim();
+
+if(!name||!weight||!price){alert("All fields required");return;}
+
 fetch('/add-crop',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({farmer:currentName,name,weight,price})
 })
 .then(res=>res.json())
-.then(data=>{showPopup(data.message);loadCrops();});
-}
-
-function deleteCrop(id){
-fetch('/delete-crop/'+id,{method:'POST'})
-.then(()=>{loadCrops();loadOrders();});
+.then(data=>{alert(data.message);loadCrops();});
 }
 
 function loadCrops(){
 fetch('/crops')
 .then(res=>res.json())
 .then(data=>{
-const list=document.getElementById("cropList");
-list.innerHTML="";
-data.forEach((crop)=>{
-list.innerHTML+=`
+let html="";
+data.forEach(c=>{
+html+=`
 <div class="card">
-<h3>${crop.name}</h3>
-<p>Farmer: ${crop.farmer}</p>
-<p>Weight Left: ${crop.weight} kg</p>
-<p>Price: ₹${crop.price}</p>
-${currentUser==="importer"?`<button class="action" onclick="showOrderForm(${crop.id},'${crop.name}')">Buy</button>`:""}
-${currentUser==="farmer" && crop.farmer===currentName?`<button class="delete" onclick="deleteCrop(${crop.id})">Delete</button>`:""}
+<h4>${c.name}</h4>
+<p>Farmer: ${c.farmer}</p>
+<p>Stock: ${c.weight}</p>
+<p>Price: ₹${c.price}</p>
+${currentUser==="importer"
+? `<button class="action" onclick="addToCart(${c.id},'${c.name}',${c.price})">Add to Cart</button>`
+: (currentUser==="farmer" && c.farmer===currentName)
+? `<button class="action" onclick="deleteCrop(${c.id})">Delete Crop</button>`
+: ""
+}
+
+
+
 </div>`;
 });
+document.getElementById("cropList").innerHTML=html;
 });
 }
 
-function showOrderForm(id,name){
-selectedCropId=id;
-selectedCropName=name;
-document.getElementById("selectedCrop").innerText="Crop: "+name;
-document.getElementById("orderForm").style.display="block";
+function addToCart(id,name,price){
+if(cart.length>=10){alert("Cart limit 10");return;}
+cart.push({cropId:id,name,quantity:1,price});
+total+=price;
+renderCart();
 }
 
-function confirmOrder(){
-const quantity=Number(document.getElementById("quantity").value);
-const house=document.getElementById("house").value;
-const pincode=document.getElementById("pincode").value;
-const phone=document.getElementById("phone").value;
+function renderCart(){
+let html="";
+cart.forEach(item=>{
+html+=`<p>${item.name} x${item.quantity} - ₹${item.price}</p>`;
+});
+document.getElementById("cartItems").innerHTML=html;
+document.getElementById("cartTotal").innerText=total;
+}
 
-if(!quantity||quantity<=0){showPopup("Enter valid quantity");return;}
-if(!house){showPopup("House required");return;}
-if(!/^\d{6}$/.test(pincode)){showPopup("Pincode must be 6 digits");return;}
-if(!/^\d{10}$/.test(phone)){showPopup("Phone must be 10 digits");return;}
+function checkout(){
+const house=document.getElementById("house").value.trim();
+const area=document.getElementById("area").value.trim();
+const district=document.getElementById("district").value.trim();
+const state=document.getElementById("state").value.trim();
+const pincode=document.getElementById("pincode").value.trim();
+const phone=document.getElementById("phone").value.trim();
 
-fetch('/order',{
+if(!house||!area||!district||!state){alert("Complete address required");return;}
+if(!/^\d{6}$/.test(pincode)){alert("Pincode must be 6 digits");return;}
+if(!/^\d{10}$/.test(phone)){alert("Phone must be 10 digits");return;}
+
+fetch('/checkout',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-cropId:selectedCropId,
 importer:currentName,
-quantity,
-house,
-area:document.getElementById("area").value,
-street:document.getElementById("street").value,
-landmark:document.getElementById("landmark").value,
-pincode,
-phone
+cart,
+address:{house,area,district,state,pincode,phone}
 })
 })
 .then(res=>res.json())
 .then(data=>{
-showPopup(data.message);
-document.getElementById("orderForm").style.display="none";
+alert("Grand Total ₹"+data.grandTotal);
+cart=[];total=0;
+renderCart();
 loadOrders();
 loadCrops();
 });
@@ -325,51 +275,53 @@ function loadOrders(){
 fetch('/orders')
 .then(res=>res.json())
 .then(data=>{
-const sort=document.getElementById("sortSelect").value;
-if(currentUser==="farmer"){
-if(sort==="newest"){data.sort((a,b)=>new Date(b.date)-new Date(a.date));}
-else{data.sort((a,b)=>new Date(a.date)-new Date(b.date));}
-}
-const list=document.getElementById("orderList");
-list.innerHTML="";
-data.forEach((order,index)=>{
-if(currentUser==="importer" && order.importer!==currentName) return;
-if(currentUser==="farmer" && order.farmer!==currentName) return;
 
-list.innerHTML+=`
+data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+let html="";
+data.forEach((o,i)=>{
+
+if(currentUser==="farmer" && o.farmer!==currentName) return;
+if(currentUser==="importer" && o.importer!==currentName) return;
+
+html+=`
 <div class="card">
-<h3>${order.crop}</h3>
-<p>Quantity: ${order.quantity} kg</p>
-<p>Status: ${order.status}</p>
-<p>Date: ${new Date(order.date).toLocaleString()}</p>
+<h4>${o.crop}</h4>
+<p>Farmer: ${o.farmer}</p>
+<p>Quantity: ${o.quantity}</p>
+<p>Status: ${o.tracking}</p>
+<p>Date: ${new Date(o.date).toLocaleString()}</p>
+
+${currentUser==="importer" && o.tracking==="Delivered" && !o.rating ? `
+<div>
+<span onclick="rateOrder(${i},1)">⭐</span>
+<span onclick="rateOrder(${i},2)">⭐</span>
+<span onclick="rateOrder(${i},3)">⭐</span>
+<span onclick="rateOrder(${i},4)">⭐</span>
+<span onclick="rateOrder(${i},5)">⭐</span>
+</div>`:""}
+
+${o.rating?`<p>Rating: ${"⭐".repeat(o.rating)}</p>`:""}
 
 ${currentUser==="farmer"?`
-<p>Ordered By: ${order.importer}</p>
-<p>Address: ${order.house}, ${order.area||''}, ${order.street||''}, ${order.landmark||''}, ${order.pincode}</p>
-<p>Phone: ${order.phone}</p>`:""}
-
-${currentUser==="farmer"&&order.status==="Paid"?`<button class="action" onclick="deliverOrder(${index})">Deliver</button>`:""}
-${currentUser==="importer"&&order.status==="Paid"?`<button class="delete" onclick="cancelOrder(${index})">Cancel</button>`:""}
-${currentUser==="importer"&&order.status==="Delivered"&&!order.rating?`
-<div class="stars">
-<span onclick="rateOrder(${index},1)">⭐</span>
-<span onclick="rateOrder(${index},2)">⭐</span>
-<span onclick="rateOrder(${index},3)">⭐</span>
-<span onclick="rateOrder(${index},4)">⭐</span>
-<span onclick="rateOrder(${index},5)">⭐</span>
-</div>`:""}
-${order.rating?`<p>Rating: ${"⭐".repeat(order.rating)}</p>`:""}
+<select onchange="updateStatus(${i},this.value)">
+<option>Preparing</option>
+<option>Shipped</option>
+<option>Out for Delivery</option>
+<option>Delivered</option>
+</select>`:""}
 </div>`;
 });
+document.getElementById("orderList").innerHTML=html;
 });
 }
 
-function deliverOrder(index){
-fetch('/deliver/'+index,{method:'POST'}).then(()=>loadOrders());
-}
-
-function cancelOrder(index){
-fetch('/cancel/'+index,{method:'POST'}).then(()=>{loadOrders();loadCrops();});
+function updateStatus(index,status){
+fetch('/update-status/'+index,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({status})
+}).then(()=>loadOrders());
 }
 
 function rateOrder(index,stars){
@@ -378,6 +330,32 @@ method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({rating:stars})
 }).then(()=>loadOrders());
+}
+
+function loadRevenue(){
+if(currentUser!=="farmer") return;
+
+fetch('/revenue/'+currentName)
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("revenueBox").innerHTML=
+`<div class="card">
+<p>Total Orders: ${data.totalOrders}</p>
+<p>Total Revenue: ₹${data.revenue}</p>
+</div>`;
+});
+}
+function deleteCrop(id){
+    if(!confirm("Are you sure you want to delete this crop?")) return;
+
+    fetch('/delete-crop/'+id,{
+        method:'POST'
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        alert(data.message);
+        loadCrops();
+    });
 }
 </script>
 </body>
