@@ -18,7 +18,7 @@
             margin-top: 30px;
         }
 
-        input {
+        input, select {
             padding: 8px;
             margin: 5px;
         }
@@ -52,13 +52,13 @@
 
 <div class="section">
     <h2>Select Profile</h2>
+    <input id="username" placeholder="Enter Your Name">
     <button onclick="login('farmer')">Farmer Login</button>
     <button onclick="login('importer')">Importer Login</button>
 </div>
 
 <div class="section" id="farmerSection" style="display:none;">
     <h2>Farmer Section</h2>
-    <input id="farmer" placeholder="Farmer Name">
     <input id="name" placeholder="Crop Name">
     <input id="weight" placeholder="Weight (kg)">
     <input id="price" placeholder="Price per kg">
@@ -70,30 +70,52 @@
     <div id="cropList"></div>
 </div>
 
+<div id="orderForm" style="display:none;">
+    <h3>Place Order</h3>
+    <p id="selectedCrop"></p>
+    <input id="address" placeholder="Delivery Address">
+    <input id="phone" placeholder="Phone Number">
+    <button onclick="confirmOrder()">Confirm Order</button>
+</div>
+
 <div class="section" id="ordersSection" style="display:none;">
     <h2>Orders</h2>
+
     <select id="sortSelect" onchange="loadOrders()" style="display:none;">
-    <option value="newest">Newest First</option>
-    <option value="oldest">Oldest First</option>
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
     </select>
+
     <div id="orderList"></div>
 </div>
 
 <script>
 
 let currentUser = null;
+let currentName = null;
+let selectedCropName = null;
 
 function login(role) {
+    const name = document.getElementById("username").value;
+
+    if (!name) {
+        alert("Enter your name");
+        return;
+    }
+
     currentUser = role;
+    currentName = name;
 
     document.getElementById("farmerSection").style.display = "none";
     document.getElementById("cropsSection").style.display = "none";
     document.getElementById("ordersSection").style.display = "none";
+    document.getElementById("sortSelect").style.display = "none";
 
     if (role === "farmer") {
         document.getElementById("farmerSection").style.display = "block";
         document.getElementById("cropsSection").style.display = "block";
         document.getElementById("ordersSection").style.display = "block";
+        document.getElementById("sortSelect").style.display = "block";
     }
 
     if (role === "importer") {
@@ -106,12 +128,11 @@ function login(role) {
 }
 
 function addCrop() {
-    const farmer = document.getElementById("farmer").value;
     const name = document.getElementById("name").value;
     const weight = document.getElementById("weight").value;
     const price = document.getElementById("price").value;
 
-    if (!farmer || !name || !weight || !price) {
+    if (!name || !weight || !price) {
         alert("Fill all fields");
         return;
     }
@@ -119,13 +140,13 @@ function addCrop() {
     fetch('/add-crop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ farmer, name, weight, price })
+        body: JSON.stringify({ farmer: currentName, name, weight, price })
     })
-.then(res => res.json())
-.then(data => {
-    alert(data.message);
-    loadCrops();
-});
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadCrops();
+    });
 }
 
 function deleteCrop(index) {
@@ -149,10 +170,10 @@ function loadCrops() {
                         <h3>${crop.name}</h3>
                         <p>Farmer: ${crop.farmer}</p>
                         <p>Weight: ${crop.weight} kg</p>
-                        <p>Price: ₹${crop.price} per kg</p>
+                        <p>Price: ₹${crop.price}</p>
 
                         ${currentUser === "importer"
-                            ? `<button onclick="orderCrop('${crop.name}')">Buy</button>`
+                            ? `<button onclick="showOrderForm('${crop.name}')">Buy</button>`
                             : ""}
 
                         ${currentUser === "farmer"
@@ -164,48 +185,85 @@ function loadCrops() {
         });
 }
 
-function orderCrop(cropName) {
+function showOrderForm(cropName) {
+    selectedCropName = cropName;
+    document.getElementById("selectedCrop").innerText = "Crop: " + cropName;
+    document.getElementById("orderForm").style.display = "block";
+}
+
+function confirmOrder() {
+    const address = document.getElementById("address").value;
+    const phone = document.getElementById("phone").value;
+
+    if (!address || !phone) {
+        alert("Fill all details");
+        return;
+    }
+
     fetch('/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ crop: cropName })
+        body: JSON.stringify({
+            crop: selectedCropName,
+            importer: currentName,
+            address,
+            phone
+        })
     })
     .then(res => res.json())
     .then(data => {
         alert(data.message);
+        document.getElementById("orderForm").style.display = "none";
         loadOrders();
     });
-}
+}          
 
 function loadOrders() {
     fetch('/orders')
         .then(res => res.json())
         .then(data => {
+
+            const sortValue = document.getElementById("sortSelect").value;
+
+            if (currentUser === "farmer") {
+                if (sortValue === "newest") {
+                    data.sort((a,b) => new Date(b.date) - new Date(a.date));
+                } else {
+                    data.sort((a,b) => new Date(a.date) - new Date(b.date));
+                }
+            }
+
             const list = document.getElementById("orderList");
             list.innerHTML = "";
 
-            data.forEach((order, index) => {
+            data.forEach((order, realIndex) => {
+
+                if (currentUser === "importer" && order.importer !== currentName) return;
+
                 list.innerHTML += `
                     <div class="card">
                         <h3>${order.crop}</h3>
+                        <p>Importer: ${order.importer}</p>
+                        <p>Address: ${order.address}</p>
+                        <p>Phone: ${order.phone}</p>
                         <p>Status: ${order.status}</p>
+                        <p>Date: ${new Date(order.date).toLocaleString()}</p>
 
                         ${currentUser === "farmer" && order.status === "Paid"
-                            ? `<button onclick="deliverOrder(${index})">Deliver</button>`
+                            ? `<button onclick="deliverOrder(${realIndex})">Deliver</button>`
                             : ""}
 
-
                         ${currentUser === "importer" && order.status === "Paid"
-                            ? `<button onclick="cancelOrder(${index})" style="background:red;">Cancel</button>`
+                            ? `<button onclick="cancelOrder(${realIndex})" style="background:red;">Cancel</button>`
                             : ""}
 
                         ${currentUser === "importer" && order.status === "Delivered" && !order.rating
                             ? `
-                            <button onclick="rateOrder(${index},1)">⭐</button>
-                            <button onclick="rateOrder(${index},2)">⭐⭐</button>
-                            <button onclick="rateOrder(${index},3)">⭐⭐⭐</button>
-                            <button onclick="rateOrder(${index},4)">⭐⭐⭐⭐</button>
-                            <button onclick="rateOrder(${index},5)">⭐⭐⭐⭐⭐</button>
+                            <button onclick="rateOrder(${realIndex},1)">⭐</button>
+                            <button onclick="rateOrder(${realIndex},2)">⭐⭐</button>
+                            <button onclick="rateOrder(${realIndex},3)">⭐⭐⭐</button>
+                            <button onclick="rateOrder(${realIndex},4)">⭐⭐⭐⭐</button>
+                            <button onclick="rateOrder(${realIndex},5)">⭐⭐⭐⭐⭐</button>
                             `
                             : ""}
 
@@ -215,7 +273,6 @@ function loadOrders() {
             });
         });
 }
-
 function deliverOrder(index) {
     fetch('/deliver/' + index, { method: 'POST' })
         .then(() => loadOrders());
@@ -225,7 +282,6 @@ function cancelOrder(index) {
     fetch('/cancel/' + index, { method: 'POST' })
         .then(() => loadOrders());
 }
-
 
 function rateOrder(index, stars) {
     fetch('/rate/' + index, {
@@ -237,6 +293,5 @@ function rateOrder(index, stars) {
 }
 
 </script>
-
 </body>
 </html>

@@ -34,10 +34,9 @@ app.get('/crops', (req, res) => {
 // Delete crop + related orders
 app.post('/delete-crop/:index', (req, res) => {
     const index = req.params.index;
-
     const deletedCrop = crops[index].name;
-    crops.splice(index, 1);
 
+    crops.splice(index, 1);
     orders = orders.filter(order => order.crop !== deletedCrop);
 
     res.json({ message: "Crop and related orders deleted." });
@@ -47,12 +46,16 @@ app.post('/delete-crop/:index', (req, res) => {
 app.post('/order', (req, res) => {
     const order = {
         crop: req.body.crop,
+        importer: req.body.importer,
+        address: req.body.address,
+        phone: req.body.phone,
         status: "Paid",
         rating: null,
         date: new Date()
     };
+
     orders.push(order);
-    res.json({ message: "Order placed." });
+    res.json({ message: "Order placed successfully." });
 });
 
 // Get orders
@@ -77,7 +80,6 @@ app.post('/rate/:index', (req, res) => {
     orders[req.params.index].rating = req.body.rating;
     res.json({ message: "Rated." });
 });
-
 
 app.listen(3000, () => {
     console.log("Server running at http://localhost:3000");
