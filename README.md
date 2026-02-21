@@ -21,7 +21,7 @@
 ### Hosted Project Link
 
 Currently running locally:
-`http://localhost:3000`
+https://agrobridge-4lb6me434-anaghaskumar-hubs-projects.vercel.app/
 
 ---
 
